@@ -1,15 +1,24 @@
-package org.example.springbootmvc.model;
+package org.example.springbootmvc.dto;
 
-public class Pet {
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public class PetDto {
 
     private Long id;
+
+    @NotBlank(message = "Name cannot be blank")
     private String name;
+
+    @NotNull(message = "User ID cannot be null")
+    @Min(value = 1, message = "User ID must be greater than or equal to 1")
     private Long userId;
 
-    public Pet() {
+    public PetDto() {
     }
 
-    public Pet(Long id, String name, Long userId) {
+    public PetDto(Long id, String name, Long userId) {
         this.id = id;
         this.name = name;
         this.userId = userId;

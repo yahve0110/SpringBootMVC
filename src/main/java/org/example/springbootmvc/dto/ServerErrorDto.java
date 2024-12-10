@@ -1,4 +1,4 @@
-package org.example.springbootmvc.exception;
+package org.example.springbootmvc.dto;
 
 import java.time.LocalDateTime;
 

@@ -1,5 +1,6 @@
 package org.example.springbootmvc.exception;
 
+import org.example.springbootmvc.dto.ServerErrorDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

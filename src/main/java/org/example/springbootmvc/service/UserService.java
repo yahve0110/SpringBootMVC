@@ -1,5 +1,7 @@
 package org.example.springbootmvc.service;
 
+import org.example.springbootmvc.dto.UserDto;
+import org.example.springbootmvc.mapper.UserMapper;
 import org.example.springbootmvc.model.Pet;
 import org.example.springbootmvc.model.User;
 import org.springframework.stereotype.Service;
@@ -19,19 +21,22 @@ public class UserService {
         this.userMap = new HashMap<>();
     }
 
-    public User createUser(User userToCreate) {
+    public UserDto createUser(UserDto userDto) {
+        User userToCreate = UserMapper.toEntity(userDto);
+
         ++idCounter;
-        User user = new User(idCounter, userToCreate.getName(), userToCreate.getEmail(), userToCreate.getAge());
-        userMap.put(idCounter, user);
-        return user;
+        userToCreate.setId(idCounter);
+        userMap.put(idCounter, userToCreate);
+
+        return UserMapper.toDto(userToCreate);
     }
 
-    public User getUserById(Long id) {
+    public UserDto getUserById(Long id) {
         User user = userMap.get(id);
         if (user == null) {
             throw new NoSuchElementException("User with ID " + id + " not found");
         }
-        return user;
+        return UserMapper.toDto(user);
     }
 
     public void deleteUser(Long id) {
@@ -41,16 +46,24 @@ public class UserService {
         }
     }
 
-    public User updateUser(User userToUpdate, Long id) {
+    public UserDto updateUser(Long id, UserDto userDto) {
         if (!userMap.containsKey(id)) {
             throw new NoSuchElementException("User with ID " + id + " not found");
         }
-        userMap.put(id, userToUpdate);
-        return userToUpdate;
+
+        User userToUpdate = userMap.get(id);
+        userToUpdate.setName(userDto.getName());
+        userToUpdate.setEmail(userDto.getEmail());
+        userToUpdate.setAge(userDto.getAge());
+
+        return UserMapper.toDto(userToUpdate);
     }
 
     public void addPetToUser(Long userId, Pet pet) {
-        User user = getUserById(userId);
+        User user = userMap.get(userId);
+        if (user == null) {
+            throw new NoSuchElementException("User with ID " + userId + " not found");
+        }
         if (pet == null) {
             throw new IllegalArgumentException("Pet cannot be null");
         }
@@ -58,7 +71,11 @@ public class UserService {
     }
 
     public void deletePetFromUser(Long userId, Long petId) {
-        User user = getUserById(userId);
+        User user = userMap.get(userId);
+        if (user == null) {
+            throw new NoSuchElementException("User with ID " + userId + " not found");
+        }
+
         boolean removed = user.getPets().removeIf(p -> p.getId().equals(petId));
         if (!removed) {
             throw new NoSuchElementException("Pet with ID " + petId + " not found for User ID " + userId);
@@ -66,7 +83,11 @@ public class UserService {
     }
 
     public void updatePetToUser(Long userId, Pet pet) {
-        User user = getUserById(userId);
+        User user = userMap.get(userId);
+        if (user == null) {
+            throw new NoSuchElementException("User with ID " + userId + " not found");
+        }
+
         Pet existingPet = user.getPets().stream()
                 .filter(p -> p.getId().equals(pet.getId()))
                 .findFirst()

@@ -1,9 +1,9 @@
 package org.example.springbootmvc.controller;
 
 import jakarta.validation.Valid;
-import org.example.springbootmvc.model.Pet;
+import org.example.springbootmvc.dto.PetDto;
 import org.example.springbootmvc.service.PetService;
-import org.example.springbootmvc.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,25 +11,23 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/pet")
 public class PetController {
     private final PetService petService;
-    private final UserService userService;
 
-    public PetController(PetService petService, UserService userService) {
+    public PetController(PetService petService) {
         this.petService = petService;
-        this.userService = userService;
     }
 
     @PostMapping
-    public ResponseEntity<Pet> createPet(@Valid @RequestBody Pet petToCreate) {
-        Pet pet = petService.createPet(petToCreate);
-        userService.addPetToUser(pet.getUserId(), pet);
-        return ResponseEntity.status(201).body(pet);
+    public ResponseEntity<PetDto> createPet(@Valid @RequestBody PetDto petDtoToCreate) {
+        PetDto petDto = petService.createPet(petDtoToCreate);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(petDto);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Pet> getPetById(@PathVariable("id") Long id) {
-        Pet pet = petService.getPetById(id);
-        if (pet != null) {
-            return ResponseEntity.ok(pet);
+    public ResponseEntity<PetDto> getPetById(@PathVariable("id") Long id) {
+        PetDto petDto = petService.getPetById(id);
+        if (petDto != null) {
+            return ResponseEntity.ok(petDto);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -37,23 +35,16 @@ public class PetController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePetById(@PathVariable("id") Long id) {
-        Pet pet = petService.getPetById(id);
-        if (pet != null) {
-            userService.deletePetFromUser(pet.getUserId(), id);
-            petService.deletePet(id);
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        petService.deletePet(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Pet> updatePet(@PathVariable("id") Long id, @Valid @RequestBody Pet petToUpdate) {
-        Pet existingPet = petService.getPetById(id);
-        if (existingPet != null) {
-            userService.updatePetToUser(existingPet.getUserId(), petToUpdate);
-            Pet updatedPet = petService.updatePet(petToUpdate, id);
-            return ResponseEntity.ok(updatedPet);
+    public ResponseEntity<PetDto> updatePet(@PathVariable("id") Long id, @Valid @RequestBody PetDto petDtoToUpdate) {
+        PetDto updatedPetDto = petService.updatePet(petDtoToUpdate,id);
+        if (updatedPetDto != null) {
+            return ResponseEntity.ok(updatedPetDto);
         } else {
             return ResponseEntity.notFound().build();
         }

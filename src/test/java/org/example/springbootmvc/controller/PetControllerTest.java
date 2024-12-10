@@ -1,8 +1,8 @@
 package org.example.springbootmvc.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.springbootmvc.model.Pet;
-import org.example.springbootmvc.model.User;
+import org.example.springbootmvc.dto.PetDto;
+import org.example.springbootmvc.dto.UserDto;
 import org.example.springbootmvc.service.PetService;
 import org.example.springbootmvc.service.UserService;
 import org.junit.jupiter.api.Assertions;
@@ -33,9 +33,10 @@ class PetControllerTest {
 
     @Test
     public void shouldCreateNewPet() throws Exception {
-        var user = userService.createUser(new User(null, "Pavel", "mail@mail.ru", 25));
-        var pet = new Pet(null, "Vasya", user.getId());
-        String newPetJson = objectMapper.writeValueAsString(pet);
+        var user = userService.createUser(new UserDto(null, "Pavel", "mail@mail.ru", 25,null));
+
+        var petDto = new PetDto(null, "Vasya", user.getId());
+        String newPetJson = objectMapper.writeValueAsString(petDto);
 
         var jsonResponse = mockMvc.perform(post("/pet")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -45,10 +46,10 @@ class PetControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        var petResponse = objectMapper.readValue(jsonResponse, Pet.class);
+        var petResponse = objectMapper.readValue(jsonResponse, PetDto.class);
 
-        Assertions.assertEquals(pet.getName(), petResponse.getName());
-        Assertions.assertEquals(pet.getUserId(), petResponse.getUserId());
+        Assertions.assertEquals(petDto.getName(), petResponse.getName());
+        Assertions.assertEquals(petDto.getUserId(), petResponse.getUserId());
         Assertions.assertNotNull(petResponse.getId());
 
         Assertions.assertDoesNotThrow(() -> petService.getPetById(petResponse.getId()));
@@ -60,25 +61,27 @@ class PetControllerTest {
 
     @Test
     public void shouldGetPetById() throws Exception {
-        var user = userService.createUser(new User(null, "Pavel", "mail@mail.ru", 25));
-        var pet = petService.createPet(new Pet(null, "Vasya", user.getId()));
+        var user = userService.createUser(new UserDto(null, "Pavel", "mail@mail.ru", 25,null));
 
-        mockMvc.perform(get("/pet/" + pet.getId()))
+        var petDto = petService.createPet(new PetDto(null, "Vasya", user.getId()));
+
+        mockMvc.perform(get("/pet/" + petDto.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(pet.getId()))
-                .andExpect(jsonPath("$.name").value(pet.getName()))
-                .andExpect(jsonPath("$.userId").value(pet.getUserId()));
+                .andExpect(jsonPath("$.id").value(petDto.getId()))
+                .andExpect(jsonPath("$.name").value(petDto.getName()))
+                .andExpect(jsonPath("$.userId").value(petDto.getUserId()));
     }
 
     @Test
     public void shouldUpdatePet() throws Exception {
-        var user = userService.createUser(new User(null, "Pavel", "mail@mail.ru", 25));
-        var pet = petService.createPet(new Pet(null, "Vasya", user.getId()));
-        pet.setName("Updated Name");
+        var user = userService.createUser(new UserDto(null, "Pavel", "mail@mail.ru", 25,null));
 
-        String updatedPetJson = objectMapper.writeValueAsString(pet);
+        var petDto = petService.createPet(new PetDto(null, "Vasya", user.getId()));
+        petDto.setName("Updated Name");
 
-        mockMvc.perform(put("/pet/" + pet.getId())
+        String updatedPetJson = objectMapper.writeValueAsString(petDto);
+
+        mockMvc.perform(put("/pet/" + petDto.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updatedPetJson))
                 .andExpect(status().isOk())
@@ -87,15 +90,16 @@ class PetControllerTest {
 
     @Test
     public void shouldDeletePet() throws Exception {
-        var user = userService.createUser(new User(null, "Pavel", "mail@mail.ru", 25));
-        var pet = petService.createPet(new Pet(null, "Vasya", user.getId()));
+        var user = userService.createUser(new UserDto(null, "Pavel", "mail@mail.ru", 25,null));
 
-        Assertions.assertDoesNotThrow(() -> petService.getPetById(pet.getId()));
+        var petDto = petService.createPet(new PetDto(null, "Vasya", user.getId()));
 
-        mockMvc.perform(delete("/pet/" + pet.getId()))
+        Assertions.assertDoesNotThrow(() -> petService.getPetById(petDto.getId()));
+
+        mockMvc.perform(delete("/pet/" + petDto.getId()))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/pet/" + pet.getId()))
+        mockMvc.perform(get("/pet/" + petDto.getId()))
                 .andExpect(status().isNotFound());
     }
 }
