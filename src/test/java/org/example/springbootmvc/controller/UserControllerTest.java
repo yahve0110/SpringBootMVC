@@ -24,7 +24,7 @@ class UserControllerTest {
 
     @Test
     void shouldSuccessCreateUser() throws Exception {
-        var userDto = new UserDto(null, "BobTest", "bobTest@gmail.com", 25,null);  // Создаем UserDto
+        var userDto = new UserDto(null, "BobTest", "bobTest@gmail.com", 25,null);
 
         String userJson = objectMapper.writeValueAsString(userDto);
 
@@ -36,7 +36,7 @@ class UserControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        UserDto userResponse = objectMapper.readValue(createdUserJson, UserDto.class);  // Ожидаем UserDto
+        UserDto userResponse = objectMapper.readValue(createdUserJson, UserDto.class);
 
         Assertions.assertEquals(userDto.getName(), userResponse.getName());
         Assertions.assertEquals(userDto.getEmail(), userResponse.getEmail());
